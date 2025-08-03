@@ -1,0 +1,27 @@
+{
+  "name": "madzone-web2.0",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "npm@10.9.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "start": "turbo run start",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "dev:client": "turbo run dev --filter=@madzone/client",
+    "dev:server": "turbo run dev --filter=@madzone/server",
+    "db:generate": "turbo run db:generate --filter=@madzone/server",
+    "db:push": "turbo run db:push --filter=@madzone/server",
+    "db:migrate": "turbo run db:migrate --filter=@madzone/server",
+    "db:studio": "turbo run db:studio --filter=@madzone/server"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.5",
+    "typescript": "^5"
+  }
+}
