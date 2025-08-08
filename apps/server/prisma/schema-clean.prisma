@@ -1,0 +1,171 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// === Uživatelské modely ===
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String   @unique
+  firstName String?
+  lastName  String?
+  imageUrl  String?
+  role      String   @default("MEMBER") // Enum as string
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relace
+  createdTasks  Task[]    @relation("TaskCreator")
+  assignedTasks Task[]    @relation("TaskAssignee")
+  createdEvents Event[]   @relation("EventCreator")
+  createdExpenses Expense[] @relation("ExpenseCreator")
+
+  @@map("users")
+}
+
+// === Týmový panel modely ===
+model Task {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  status      String     @default("TODO") // Enum as string
+  priority    String     @default("MEDIUM") // Enum as string
+  position    Int        @default(0)
+  columnId    String
+  createdById String
+  assigneeId  String?
+  projectId   String?
+  dueDate     DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // Relace
+  createdBy User     @relation("TaskCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  assignee  User?    @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  project   Project? @relation(fields: [projectId], references: [id])
+  column    Column   @relation(fields: [columnId], references: [id], onDelete: Cascade)
+
+  @@map("tasks")
+}
+
+model Column {
+  id       String @id @default(cuid())
+  title    String
+  position Int    @default(0)
+  color    String @default("#3b82f6")
+
+  // Relace
+  tasks Task[]
+
+  @@map("columns")
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relace
+  tasks Task[]
+
+  @@map("projects")
+}
+
+// === Kalendář modely ===
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  start       DateTime
+  end         DateTime?
+  allDay      Boolean  @default(false)
+  color       String   @default("#3b82f6")
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relace
+  createdBy User @relation("EventCreator", fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@map("events")
+}
+
+// === Výdaje modely ===
+model Expense {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  amount      Float
+  currency    String   @default("CZK")
+  date        DateTime
+  categoryId  String
+  createdById String
+  receipt     String?
+  status      String   @default("PENDING") // Enum as string
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relace
+  createdBy User            @relation("ExpenseCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  category  ExpenseCategory @relation(fields: [categoryId], references: [id])
+
+  @@map("expenses")
+}
+
+model ExpenseCategory {
+  id    String @id @default(cuid())
+  name  String
+  color String @default("#3b82f6")
+  icon  String @default("💰")
+
+  // Relace
+  expenses Expense[]
+
+  @@map("expense_categories")
+}
+
+// === CMS modely pro správu webu ===
+model SiteSettings {
+  id            String  @id @default("site_settings")
+  heroTitle     String  @default("Vítejte v Madzone")
+  heroSubtitle  String  @default("Moderní platforma pro události a komunitu")
+  primaryColor  String  @default("#3b82f6")
+  logoUrl       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("site_settings")
+}
+
+model SocialLink {
+  id       String @id @default(cuid())
+  platform String
+  url      String
+  order    Int    @default(0)
+
+  @@map("social_links")
+}
+
+// === Casbin RBAC modely ===
+model CasbinRule {
+  id    Int    @id @default(autoincrement())
+  ptype String
+  v0    String?
+  v1    String?
+  v2    String?
+  v3    String?
+  v4    String?
+  v5    String?
+
+  @@map("casbin_rule")
+}
